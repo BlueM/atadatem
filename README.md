@@ -45,10 +45,11 @@ The repository contains an Xcode 3.2 project which should compile out of the box
 
 Author
 -----
-Carsten Blüm, [www.bluem.net](http://www.bluem.net/)
-Project website: [www.bluem.net/jump/atadatem](www.bluem.net/jump/atadatem)
+Carsten Blüm, [www.bluem.net](https://www.bluem.net/)
+
+Project website: [www.bluem.net/jump/atadatem](https://www.bluem.net/jump/atadatem)
 
 
 License
 ----------
-[BSD License](http://www.opensource.org/licenses/bsd-license.php)
+[BSD License](https://opensource.org/licenses/bsd-license.php)
