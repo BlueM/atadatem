@@ -4,22 +4,25 @@ atadatem Overview
 Purpose
 -------
 
-Atadatem (“metadata” backwards) is a tiny (Mac) OS X command-line tool for recursively removing certain types of metadata files from one or more directories.
+Atadatem (“metadata” backwards) is a tiny macOS / OS X / Mac OS X command-line tool for recursively removing certain types of metadata files from one or more directories.
 
 Using atadatem, you can remove any combination or all of the following:
-* Remove .git directories
-* Remove .svn directories
-* Remove .DS_Store files
-* Remove Icon files (actually, the name is “Icon\r”)
+* `.DS_Store` files
+* Git-related metadata: `.git`, `.gitattributes`, `.gitmodules`, `.gitignore`, `.gitkeep`
+* `.svn` directories
+* Mac Icon files (actually, the name is `Icon\r`)
+* JavaScript-related configuration/metadata: `.jshintrc`, `.jslintrc`, `.babelrc`
+* Editor/IDE metadata: `.idea`, `.editorconfig`
+* Integration/analysis tools’ metadata: `.travis.yml`, `.scrutinizer.yml`, `.coveralls.yml`, `.codeclimate.yml`
+
 
 Usage
 -----
+Invoke `atadatem` without any options or arguments or with option `-h` to see usage information.
 
-Invoke atadatem without any options or arguments or with option -h to see usage information.
 
 Examples
 --------
-
 Removing all .DS_Store files below a directory:
 
 	atadatem -d /path/to/directory
@@ -43,6 +46,8 @@ The repository contains an Xcode 3.2 project which should compile out of the box
 Author
 -----
 Carsten Blüm, [www.bluem.net](http://www.bluem.net/)
+Project website: [www.bluem.net/jump/atadatem](www.bluem.net/jump/atadatem)
+
 
 License
 ----------

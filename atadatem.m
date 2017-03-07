@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, Carsten Blüm <carsten@bluem.net>
+ * Copyright (c) 2012-2017, Carsten Blüm <carsten@bluem.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,150 +31,188 @@
 #include <stdio.h>
 #include <string.h>
 
-void clean(const char *fspath, BOOL testMode,
-		   BOOL removeDSStore, BOOL removeSVNDirs,
-		   BOOL removeGitDirs, BOOL removeIcons);
+void clean(const char *fspath, BOOL testMode, BOOL removeDSStore, BOOL removeSvn,
+           BOOL removeGit, BOOL removeIcons, BOOL removeJs, BOOL removeEditor, BOOL removeTools);
 
 void help();
 
 int main (int argc, const char * argv[]) {
 
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-    
-	static char options[] = "adshgit";
-	BOOL removeDSStore = NO;
-	BOOL removeGitDirs = NO;
-	BOOL removeSVNDirs = NO;
-	BOOL removeIcons   = NO;
-	BOOL testMode      = NO;
-	unsigned int i, optchar;
-	
-	// Parse command line options
-	while ((optchar = getopt(argc, (char * const *)argv, options)) != -1) {
-		
-		switch(optchar) {
 
-			case 'h':
-				help();
-				[pool release];
-				return EXIT_SUCCESS;
-				
-			case 'a':
-				removeDSStore = YES;
-				removeGitDirs = YES;
-				removeSVNDirs = YES;
-				removeIcons   = YES;
-				break;
-				
-			case 's':
-				removeSVNDirs = YES;
-				break;
-				
-			case 't':
-				testMode = YES;
-				break;
-				
-			case 'i':
-				removeIcons = YES;
-				break;
-				
-			case 'g':
-				removeGitDirs = YES;
-				break;
-				
-			case 'd':
-				removeDSStore = YES;
-				break;
-				
-		}
-	}
-	
-	if (argc == optind) {
-		// No arguments given
-		help();
-		[pool release];
-		return EXIT_SUCCESS;
-	}
-	
-	// Loop over remaining arguments
-	for (i = optind; i < argc; i ++) {
-		clean(argv[i], testMode, removeDSStore, removeSVNDirs, removeGitDirs, removeIcons);
-	}
+    static char options[] = "adcsjhegit";
+    BOOL removeDSStore = NO;
+    BOOL removeGit     = NO;
+    BOOL removeJs      = NO;
+    BOOL removeEditor  = NO;
+    BOOL removeSvn     = NO;
+    BOOL removeIcons   = NO;
+    BOOL removeTools   = NO;
+    BOOL testMode      = NO;
+    unsigned int i, optchar;
 
-	[pool release];
+    // Parse command line options
+    while ((optchar = getopt(argc, (char * const *)argv, options)) != -1) {
+        switch(optchar) {
+            case 'h':
+                help();
+                [pool release];
+                return EXIT_SUCCESS;
+            case 'a':
+                removeDSStore = YES;
+                removeGit     = YES;
+                removeSvn     = YES;
+                removeJs      = YES;
+                removeIcons   = YES;
+                removeEditor  = YES;
+                removeTools   = YES;
+                break;
+            case 'j':
+                removeJs = YES;
+                break;
+            case 'e':
+                removeEditor = YES;
+                break;
+            case 's':
+                removeSvn = YES;
+                break;
+            case 't':
+                testMode = YES;
+                break;
+            case 'c':
+                removeTools = YES;
+                break;
+            case 'i':
+                removeIcons = YES;
+                break;
+            case 'g':
+                removeGit = YES;
+                break;
+            case 'd':
+                removeDSStore = YES;
+                break;
+            default:
+                printf("Invoke with -h to see the help\n");
+                return EXIT_FAILURE;
+        }
+    }
+
+    if (argc == optind) {
+        // No arguments given
+        help();
+        [pool release];
+        return EXIT_SUCCESS;
+    }
+
+    // Loop over remaining arguments
+    for (i = optind; i < argc; i ++) {
+        clean(argv[i], testMode, removeDSStore, removeSvn, removeGit, removeIcons, removeJs, removeEditor, removeTools);
+    }
+
+    [pool release];
     return 0;
 }
 
 
-void clean(const char *fspath, BOOL testMode,
-		   BOOL removeDSStore, BOOL removeSVNDirs,
-		   BOOL removeGitDirs, BOOL removeIcons) {
+void clean(const char *fspath, BOOL testMode, BOOL removeDSStore, BOOL removeSvn,
+           BOOL removeGit, BOOL removeIcons, BOOL removeJs, BOOL removeEditor, BOOL removeTools) {
 
- 	NSFileManager *fMan = [NSFileManager defaultManager];
-	NSString *path = [fMan stringWithFileSystemRepresentation:fspath length:strlen(fspath)];
- 	NSString *item;
- 	BOOL isDir;
- 
- 	// Silently ignore anything that's not a directory
- 	if ([fMan fileExistsAtPath:path isDirectory:&isDir] && !isDir) {
- 		return;
- 	}
+    NSFileManager *fMan = [NSFileManager defaultManager];
+    NSString *path = [fMan stringWithFileSystemRepresentation:fspath length:strlen(fspath)];
+    NSString *item;
+    BOOL isDir;
 
-	NSDirectoryEnumerator *dEnum = [fMan enumeratorAtPath:path];
+    // Silently ignore anything that's not a directory
+    if ([fMan fileExistsAtPath:path isDirectory:&isDir] && !isDir) {
+        return;
+    }
 
-	NSMutableArray *removeDirs  = [NSMutableArray arrayWithCapacity:4];
-	if (removeSVNDirs) [removeDirs  addObject:@".svn"];
-	if (removeGitDirs) [removeDirs  addObject:@".git"];
-	
-	NSMutableArray *removeFiles = [NSMutableArray arrayWithCapacity:4];	
-	if (removeDSStore) [removeFiles addObject:@".DS_Store"];
-	if (removeIcons)   [removeFiles addObject:@"Icon\r"];
-		
- 	while (item = [dEnum nextObject]) {
-		NSString *name = [item lastPathComponent];
-		if ([removeDirs containsObject:name]) {
-			NSString *subPath = [path stringByAppendingPathComponent:item];
-			if ([fMan fileExistsAtPath:subPath isDirectory:&isDir] && isDir) {
-				if (testMode) {
-					printf("%s\n", [subPath UTF8String]);
-				} else {
-					[fMan removeFileAtPath:subPath handler:nil];
-				}
-			}
-		} else if ([removeFiles containsObject:name]) {
-			NSString *subPath = [path stringByAppendingPathComponent:item];
-			NSDictionary *attributes = [fMan attributesOfItemAtPath:subPath error:nil];
-			if ([NSFileTypeRegular isEqualToString:[attributes objectForKey:NSFileType]]) {
-				if (testMode) {
-					printf("%s\n", [subPath UTF8String]);
-				} else {
-					[fMan removeFileAtPath:subPath handler:nil];
-				}
-			}
-		}
- 	}
+    NSMutableArray *removeDirs  = [NSMutableArray arrayWithCapacity:4];
+    NSMutableArray *removeFiles = [NSMutableArray arrayWithCapacity:4];
+
+    if (removeSvn) {
+        [removeDirs addObject:@".svn"];
+    }
+
+    if (removeGit) {
+        [removeDirs addObject:@".git"];
+        [removeFiles addObject:@".gitkeep"];
+        [removeFiles addObject:@".gitignore"];
+        [removeFiles addObject:@".gitattributes"];
+        [removeFiles addObject:@".gitmodules"];
+    }
+
+    if (removeEditor) {
+        [removeDirs addObject:@".idea"];
+        [removeFiles addObject:@".editorconfig"];
+    }
+
+    if (removeTools) {
+        [removeFiles addObject:@".travis.yml"];
+        [removeFiles addObject:@".scrutinizer.yml"];
+        [removeFiles addObject:@".coveralls.yml"];
+        [removeFiles addObject:@".codeclimate.yml"];
+    }
+    
+    if (removeDSStore) {
+        [removeFiles addObject:@".DS_Store"];
+    }
+
+    if (removeJs) {
+        [removeFiles addObject:@".jshintrc"];
+        [removeFiles addObject:@".jslintrc"];
+        [removeFiles addObject:@".babelrc"];
+    }
+
+    if (removeIcons) {
+        [removeFiles addObject:@"Icon\r"];
+    }
+
+    NSDirectoryEnumerator *dEnum = [fMan enumeratorAtPath:path];
+     while (item = [dEnum nextObject]) {
+        NSString *name = [item lastPathComponent];
+        if ([removeDirs containsObject:name]) {
+            NSString *subPath = [path stringByAppendingPathComponent:item];
+            if ([fMan fileExistsAtPath:subPath isDirectory:&isDir] && isDir) {
+                if (testMode) {
+                    printf("%s\n", [subPath UTF8String]);
+                } else {
+                    [fMan removeFileAtPath:subPath handler:nil];
+                }
+            }
+        } else if ([removeFiles containsObject:name]) {
+            NSString *subPath = [path stringByAppendingPathComponent:item];
+            NSDictionary *attributes = [fMan attributesOfItemAtPath:subPath error:nil];
+            if ([NSFileTypeRegular isEqualToString:[attributes objectForKey:NSFileType]]) {
+                if (testMode) {
+                    printf("%s\n", [subPath UTF8String]);
+                } else {
+                    [fMan removeFileAtPath:subPath handler:nil];
+                }
+            }
+        }
+     }
 }
 
 void help() {
-	char *date = __DATE__;
-	NSString *dateString = [NSString stringWithCString:date encoding:NSUTF8StringEncoding];
-	NSDate *dateobj = [NSDate dateWithNaturalLanguageString:dateString];
-	NSString *mdy = [dateobj descriptionWithCalendarFormat:@"%m/%d/%Y" timeZone:nil locale:nil];
-	printf("\n");
-	printf(" atadatem removes specific metadata from directories\n\n");
-	printf(" Usage: \n");
-	printf("   atadatem [-a -d -i -s -g] path1 [path2] [...]\n\n");
-	printf(" Options: \n");
-	printf("   -d  Recursively remove .DS_Store files\n");
-	printf("   -i  Recursively remove Mac Icon files (“Icon\\r”)\n");
-	printf("   -s  Recursively remove .svn directories\n");
-	printf("   -g  Recursively remove .git directories\n");
-	printf("   -a  Recursively remove all of the above\n");
-	printf("   -t  Test mode: prints files/directories that would have been\n");
-	printf("       deleted, but does not delete anything.\n");
-	printf("\n");
-	printf(" atadatem 1.0\n");
-	printf(" Carsten Bluem, %s\n", [mdy UTF8String]);
-	printf(" Website: www.bluem.net\n\n");
-}
+    NSString *help = @"\n"
+    "atadatem recursively removes specific invisible metadata files/directories\n\n"
+    "Usage: \n"
+    "  atadatem [-a -d -i -s -g] path1 [path2] [...]\n\n"
+    "Options: \n"
+    "  -d  Recursively remove .DS_Store files\n"
+    "  -i  Recursively remove Mac Icon files (“Icon\\r”)\n"
+    "  -g  Recursively remove Git-related metadata: .git, .gitattributes, .gitmodules, .gitignore, .gitkeep\n"
+    "  -s  Recursively remove Subversion .svn directories\n"
+    "  -j  Recursively remove JavaScript-related metadata: .jshintrc, .jslintrc, .babelrc\n"
+    "  -e  Recursively remove editor/IDE metadata: .idea, .editorconfig\n"
+    "  -c  Recursively remove integration/analysis tools’ metadata: .travis.yml, .scrutinizer.yml, .coveralls.yml, .codeclimate.yml\n"
+    "  -a  Recursively remove all of the above\n"
+    "  -t  Test mode: removes nothing, only reports which files/directories would be deleted\n"
+    "\n"
+    "atadatem 2.0\n"
+    "Carsten Bluem, 03/07/2017\n"
+    "Website: www.bluem.net/jump/atadatem\n";
 
+    printf("%s", [help UTF8String]);
+}
