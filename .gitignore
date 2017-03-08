@@ -1,4 +1,6 @@
-build/
+/atadatem
+/atadatem.o
+/build/
 .DS_Store
 *.pbxuser
 *.mode1
