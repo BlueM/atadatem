@@ -162,6 +162,12 @@ void clean(const char *fspath, BOOL testMode, BOOL removeDSStore, BOOL removeSvn
         [removeFiles addObject:@".jshintrc"];
         [removeFiles addObject:@".jslintrc"];
         [removeFiles addObject:@".babelrc"];
+        [removeFiles addObject:@".eslintrc.js"];
+        [removeFiles addObject:@".eslintrc.yaml"];
+        [removeFiles addObject:@".eslintrc.yml"];
+        [removeFiles addObject:@".eslintrc.json"];
+        [removeFiles addObject:@".eslintrc"];
+        [removeFiles addObject:@".eslintignore"];
     }
 
     if (removeIcons) {
@@ -204,7 +210,7 @@ void help() {
     "  -i  Recursively remove Mac Icon files (“Icon\\r”)\n"
     "  -g  Recursively remove Git-related metadata: .git, .gitattributes, .gitmodules, .gitignore, .gitkeep\n"
     "  -s  Recursively remove Subversion .svn directories\n"
-    "  -j  Recursively remove JavaScript-related metadata: .jshintrc, .jslintrc, .babelrc\n"
+    "  -j  Recursively remove JavaScript-related metadata: .jshintrc, .jslintrc, .babelrc, .eslintrc, .eslintrc.*, .eslintignore\n"
     "  -e  Recursively remove editor/IDE metadata: .idea, .editorconfig\n"
     "  -c  Recursively remove integration/analysis tools’ metadata: .travis.yml, .scrutinizer.yml, .coveralls.yml, .codeclimate.yml\n"
     "  -a  Recursively remove all of the above\n"
